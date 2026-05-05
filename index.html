@@ -41,7 +41,7 @@
       .app {
         position: relative;
         min-height: 100svh;
-        overflow: hidden;
+        overflow-x: hidden;
         isolation: isolate;
       }
 
@@ -204,7 +204,7 @@
       }
 
       .wheel-card {
-        width: min(650px, 100%);
+        width: min(620px, 100%);
         padding: 22px;
         border: 1px solid var(--line);
         border-radius: 24px;
@@ -239,7 +239,7 @@
 
       .wheel-wrap {
         position: relative;
-        width: min(82vw, 520px);
+        width: clamp(250px, min(78vw, 58svh), 440px);
         aspect-ratio: 1;
         margin: 0 auto;
       }
@@ -356,8 +356,10 @@
         margin-top: 18px;
       }
 
-      .lead-form {
+      .lead-form,
+      #leadForm {
         display: grid;
+        grid-template-columns: 1fr;
         gap: 10px;
         padding: 14px;
         border: 1px solid rgba(57, 255, 136, 0.28);
@@ -365,19 +367,23 @@
         background: rgba(0, 0, 0, 0.36);
       }
 
-      .lead-form.hidden {
+      .lead-form.hidden,
+      #leadForm.hidden {
         display: none;
       }
 
-      .lead-form label {
+      .lead-form label,
+      #leadForm label {
         display: grid;
+        grid-template-columns: 1fr;
         gap: 6px;
         color: rgba(255, 255, 255, 0.84);
         font-size: 13px;
         font-weight: 850;
       }
 
-      .lead-form input {
+      .lead-form input,
+      #leadForm input {
         width: 100%;
         min-height: 48px;
         border: 1px solid rgba(255, 255, 255, 0.18);
@@ -391,12 +397,14 @@
         padding: 0 14px;
       }
 
-      .lead-form input:focus {
+      .lead-form input:focus,
+      #leadForm input:focus {
         border-color: rgba(57, 255, 136, 0.72);
         box-shadow: 0 0 0 3px rgba(57, 255, 136, 0.12);
       }
 
-      .lead-form input::placeholder {
+      .lead-form input::placeholder,
+      #leadForm input::placeholder {
         color: rgba(255, 255, 255, 0.42);
       }
 
@@ -450,6 +458,10 @@
       button:disabled {
         cursor: default;
         opacity: 0.74;
+      }
+
+      #spinBtn[hidden] {
+        display: none;
       }
 
       .result {
@@ -640,7 +652,7 @@
         }
 
         .wheel-wrap {
-          width: min(92vw, 444px);
+          width: clamp(250px, min(88vw, 54svh), 390px);
         }
 
         .slice-label {
@@ -678,6 +690,49 @@
         .slice-label {
           font-size: 13.5px;
           padding-right: 7px;
+        }
+      }
+
+      @media (max-height: 760px) and (min-width: 901px) {
+        .layout {
+          align-items: start;
+          padding-top: 10px;
+        }
+
+        .intro {
+          gap: 12px;
+        }
+
+        h1 {
+          font-size: clamp(48px, 6.8vw, 76px);
+        }
+
+        .lead {
+          font-size: 16px;
+        }
+
+        .step {
+          min-height: 36px;
+        }
+
+        .wheel-card {
+          padding: 16px;
+        }
+
+        .top-gallery {
+          margin-bottom: 10px;
+        }
+
+        .top-gallery .photo {
+          aspect-ratio: 1.28 / 1;
+        }
+
+        .wheel-head {
+          margin-bottom: 10px;
+        }
+
+        .wheel-wrap {
+          width: clamp(300px, 56svh, 410px);
         }
       }
     </style>
@@ -741,7 +796,7 @@
                 <div class="form-note">Datele sunt folosite doar pentru confirmarea premiului și a comenzii.</div>
               </form>
               <div class="lead-summary" id="leadSummary">Datele au fost salvate. Poți învârti roata.</div>
-              <button id="spinBtn" disabled>Învârte roata</button>
+              <button id="spinBtn" disabled hidden>Învârte roata</button>
               <div class="result" id="result">
                 <span>Premiul tău pentru comandă</span>
                 <strong id="resultTitle">Cutie cadou gratuită</strong>
@@ -831,6 +886,7 @@
         leadForm.classList.add("hidden");
         leadSummary.textContent = `${data.name}, datele au fost salvate. Poți învârti roata.`;
         leadSummary.classList.add("show");
+        spinBtn.hidden = false;
         spinBtn.disabled = false;
         statusEl.textContent = "Date salvate";
       }
