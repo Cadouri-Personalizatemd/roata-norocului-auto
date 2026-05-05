@@ -727,9 +727,8 @@
               <div class="hub">SPIN</div>
             </div>
             <div class="controls">
-              <form class="lead-form" id="leadForm">
-                <label>
-                  Numele tău
+            <form id="leadForm" class="form">
+                    Numele tău
                   <input id="nameInput" name="name" autocomplete="name" placeholder="Ex: Maria" required />
                 </label>
                 <label>
@@ -769,6 +768,40 @@
       const locked = document.getElementById("locked");
       const attemptText = document.getElementById("attemptText");
       const leadForm = document.getElementById("leadForm");
+      document.addEventListener("DOMContentLoaded", () => {
+
+  const leadForm = document.getElementById("leadForm");
+
+  leadForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+
+    if (!isValidLead(name, phone)) {
+      formError.classList.add("show");
+      return;
+    }
+
+    formError.classList.remove("show");
+
+    const data = {
+      eventType: "wheel_result",
+      name: name,
+      phone: phone,
+      prize: selectedPrize,
+      code: generatedCode,
+      page: window.location.href,
+      userAgent: navigator.userAgent
+    };
+
+    saveLead(data);
+    showLeadReady(data);
+
+    return false;
+  });
+
+});
       const nameInput = document.getElementById("nameInput");
       const phoneInput = document.getElementById("phoneInput");
       const formError = document.getElementById("formError");
@@ -960,25 +993,34 @@
         }
       }
 
-      leadForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const name = nameInput.value.trim();
-        const phone = phoneInput.value.trim();
-        if (!isValidLead(name, phone)) {
-          formError.classList.add("show");
-          return;
-        }
+leadForm.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-        formError.classList.remove("show");
-        const data = {
-  eventType: "wheel_result",
-  name: document.getElementById("nameInput").value,
-  phone: document.getElementById("phoneInput").value,
-  prize: selectedPrize,
-  code: generatedCode,
-  page: window.location.href,
-  userAgent: navigator.userAgent
-};
+  const name = nameInput.value.trim();
+  const phone = phoneInput.value.trim();
+
+  if (!isValidLead(name, phone)) {
+    formError.classList.add("show");
+    return;
+  }
+
+  formError.classList.remove("show");
+
+  const data = {
+    eventType: "wheel_result",
+    name: name,
+    phone: phone,
+    prize: selectedPrize,
+    code: generatedCode,
+    page: window.location.href,
+    userAgent: navigator.userAgent
+  };
+
+  saveLead(data);
+  showLeadReady(data);
+
+  return false;
+});
 
       spinBtn.addEventListener("click", spin);
       igLink.addEventListener("click", async (event) => {
