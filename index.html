@@ -972,17 +972,13 @@
         formError.classList.remove("show");
         const data = {
   eventType: "wheel_result",
-  name: document.getElementById("name").value,
-  phone: document.getElementById("phone").value,
+  name: document.getElementById("nameInput").value,
+  phone: document.getElementById("phoneInput").value,
   prize: selectedPrize,
   code: generatedCode,
   page: window.location.href,
   userAgent: navigator.userAgent
-        };
-        saveLead(data);
-        showLeadReady(data);
-        sendLead("lead_submitted");
-      });
+};
 
       spinBtn.addEventListener("click", spin);
       igLink.addEventListener("click", async (event) => {
