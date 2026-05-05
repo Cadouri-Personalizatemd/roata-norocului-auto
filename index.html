@@ -799,11 +799,14 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
 
-    function saveLead(data) {
+   function saveLead(data) {
   fetch("https://script.google.com/macros/s/AKfycbw8ap9V9e0cBbbv0vOamB1Xb9S-ObFdMhfUfcWsrh1hcbIPjLFZbcWLbkn_0-zkfvpZ/exec", {
     method: "POST",
     mode: "no-cors",
-    body: new URLSearchParams(data)
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
   });
 }
 
