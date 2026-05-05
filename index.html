@@ -418,6 +418,40 @@
         letter-spacing: 1px;
       }
 
+      .ig-link {
+        min-height: 56px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(57, 255, 136, 0.42);
+        border-radius: 999px;
+        background: rgba(57, 255, 136, 0.12);
+        color: #fff;
+        font-size: 17px;
+        font-weight: 950;
+        text-align: center;
+        text-decoration: none;
+        box-shadow: 0 0 24px rgba(57, 255, 136, 0.16);
+      }
+
+      .ig-link.show {
+        display: flex;
+      }
+
+      .copy-hint {
+        display: none;
+        margin-top: -4px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.35;
+        text-align: center;
+      }
+
+      .copy-hint.show {
+        display: block;
+      }
+
       .note {
         color: var(--muted);
         font-size: 13px;
@@ -580,11 +614,11 @@
         <div class="intro">
           <div class="eyebrow">Campanie interactivă</div>
           <h1>Roata Norocului Auto</h1>
-          <p class="lead">Învârte roata o singură dată și câștigă un bonus pentru comanda ta. Premiul se aplică la produsul comandat sau la accesoriile adăugate.</p>
+          <p class="lead">Învârte roata o singură dată și câștigă un bonus pentru comanda ta. Premiul este valabil doar dacă faci o comandă.</p>
           <div class="steps">
-            <div class="step"><span>1</span> Apasă pe roată și așteaptă rezultatul.</div>
+            <div class="step"><span>1</span> Alege produsul dorit și apoi învârte roata.</div>
             <div class="step"><span>2</span> Fă screenshot cu premiul și codul primit.</div>
-            <div class="step"><span>3</span> Trimite poza în privat la @cadouri_personalizatemd.</div>
+            <div class="step"><span>3</span> Trimite poza în privat când plasezi comanda.</div>
           </div>
         </div>
 
@@ -616,12 +650,14 @@
             <div class="controls">
               <button id="spinBtn">Învârte roata</button>
               <div class="result" id="result">
-                <span>Premiul tău</span>
+                <span>Premiul tău pentru comandă</span>
                 <strong id="resultTitle">Cutie cadou gratuită</strong>
                 <b id="resultCode">CUTIE-GRATIS</b>
               </div>
-              <div class="locked" id="locked">Ai folosit deja încercarea de pe acest telefon/browser. Păstrează screenshot-ul cu codul și trimite-l în privat.</div>
-              <div class="note">Pentru publicare rapidă, această versiune limitează rotirea prin browser. Pentru limitare reală pe persoană, pagina trebuie publicată cu formular/telefon și bază de date.</div>
+              <a class="ig-link" id="igLink" href="https://ig.me/m/cadouri_personalizatemd" rel="noopener">Scrie-ne în privat pe Instagram</a>
+              <div class="copy-hint" id="copyHint">Codul se copiază automat. Dacă nu se deschide conversația, se va deschide profilul nostru.</div>
+              <div class="locked" id="locked">Ai folosit deja încercarea de pe acest telefon/browser. Păstrează screenshot-ul cu codul și trimite-l în privat când faci comanda.</div>
+              <div class="note">Premiul se aplică doar la o comandă plasată. Oferta se confirmă în privat, în funcție de produs și disponibilitate.</div>
             </div>
           </div>
         </div>
@@ -634,20 +670,24 @@
       const result = document.getElementById("result");
       const resultTitle = document.getElementById("resultTitle");
       const resultCode = document.getElementById("resultCode");
+      const igLink = document.getElementById("igLink");
+      const copyHint = document.getElementById("copyHint");
       const statusEl = document.getElementById("status");
       const locked = document.getElementById("locked");
       const attemptText = document.getElementById("attemptText");
       const STORAGE_KEY = "cadouri_personalizate_roata_universala_v2";
+      const INSTAGRAM_DM = "https://ig.me/m/cadouri_personalizatemd";
+      const INSTAGRAM_PROFILE = "https://www.instagram.com/cadouri_personalizatemd/";
 
       const prizes = [
-        { label: "-10% reducere la comanda actuală", code: "COMANDA10", short: "-10%" },
-        { label: "Cutie cadou gratuită", code: "CUTIE-GRATIS", short: "CUTIE" },
-        { label: "2 baterii de rezervă la breloc cristal", code: "2BATERII", short: "2 BATERII" },
-        { label: "Imprimare gratuită la breloc", code: "IMPRIMARE", short: "IMPRIMARE" },
-        { label: "Cutie pentru breloc la doar 20 lei", code: "CUTIE20", short: "CUTIE 20" },
-        { label: "-5% reducere la comanda actuală", code: "COMANDA5", short: "-5%" },
-        { label: "Livrare redusă", code: "LIVRARE", short: "LIVRARE" },
-        { label: "Ambalare cadou gratuită", code: "CADOU", short: "CADOU" },
+        { label: "Ai câștigat 10% reducere la comanda ta.", code: "COMANDA10", short: "-10%" },
+        { label: "Ai câștigat o cutie cadou gratuită la comanda ta.", code: "CUTIE-GRATIS", short: "CUTIE" },
+        { label: "Ai câștigat 2 baterii de rezervă la un breloc cristal comandat.", code: "2BATERII", short: "2 BATERII" },
+        { label: "Ai câștigat imprimare gratuită la un breloc comandat.", code: "IMPRIMARE", short: "IMPRIMARE" },
+        { label: "Ai câștigat cutia pentru breloc la doar 20 lei.", code: "CUTIE20", short: "CUTIE 20" },
+        { label: "Ai câștigat 5% reducere la comanda ta.", code: "COMANDA5", short: "-5%" },
+        { label: "Ai câștigat livrare redusă pentru comanda ta.", code: "LIVRARE", short: "LIVRARE" },
+        { label: "Ai câștigat ambalare cadou gratuită la comanda ta.", code: "CADOU", short: "CADOU" },
       ];
 
       let rotation = 0;
@@ -669,6 +709,8 @@
         resultTitle.textContent = prize.label;
         resultCode.textContent = prize.code;
         result.classList.add("show");
+        igLink.classList.add("show");
+        copyHint.classList.add("show");
         rotation = savedRotation || rotation;
         wheel.style.transition = alreadyPlayed ? "none" : "";
         wheel.style.transform = `rotate(${rotation}deg)`;
@@ -699,6 +741,8 @@
         if (spinning || readSavedPrize()) return;
         spinning = true;
         result.classList.remove("show");
+        igLink.classList.remove("show");
+        copyHint.classList.remove("show");
         locked.classList.remove("show");
         spinBtn.disabled = true;
         spinBtn.textContent = "Se învârte...";
@@ -747,6 +791,20 @@
       }
 
       spinBtn.addEventListener("click", spin);
+      igLink.addEventListener("click", async (event) => {
+        event.preventDefault();
+        const message = `Salut! Am câștigat la Roata Norocului: ${resultTitle.textContent} Cod: ${resultCode.textContent}. Vreau să plasez o comandă.`;
+        try {
+          await navigator.clipboard.writeText(message);
+        } catch {
+          // Clipboard access can be blocked in some browsers; the Instagram link still opens.
+        }
+
+        window.location.href = INSTAGRAM_DM;
+        window.setTimeout(() => {
+          window.location.href = INSTAGRAM_PROFILE;
+        }, 1200);
+      });
       init();
     </script>
   </body>
