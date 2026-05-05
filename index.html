@@ -830,9 +830,9 @@
         return phone.replace(/[^\d+]/g, "");
       }
 
-      function isValidLead(name, phone) {
-        return name.trim().length >= 2 && normalizePhone(phone).replace(/[^\d]/g, "").length >= 7;
-      }
+    function isValidLead(name, phone) {
+  return name.trim().length >= 2 && phone.trim().length >= 3;
+}
 
       function showLeadReady(data) {
         leadForm.classList.add("hidden");
