@@ -799,10 +799,13 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
 
-      function saveLead(data) {
-        leadData = data;
-        localStorage.setItem(LEAD_STORAGE_KEY, JSON.stringify(data));
-      }
+    function saveLead(data) {
+  fetch("https://script.google.com/macros/s/AKfycbw8ap9V9e0cBbbv0vOamB1Xb9S-ObFdMhfUfcWsrh1hcbIPjLFZbcWLbkn_0-zkfvpZ/exec", {
+    method: "POST",
+    mode: "no-cors",
+    body: new URLSearchParams(data)
+  });
+}
 
       function readSavedPrize() {
         try {
@@ -965,9 +968,13 @@
 
         formError.classList.remove("show");
         const data = {
-          name,
-          phone: normalizePhone(phone),
-          savedAt: new Date().toISOString(),
+  eventType: "wheel_result",
+  name: document.getElementById("name").value,
+  phone: document.getElementById("phone").value,
+  prize: selectedPrize,
+  code: generatedCode,
+  page: window.location.href,
+  userAgent: navigator.userAgent
         };
         saveLead(data);
         showLeadReady(data);
