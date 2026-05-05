@@ -356,6 +356,85 @@
         margin-top: 18px;
       }
 
+      .lead-form {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid rgba(57, 255, 136, 0.28);
+        border-radius: 18px;
+        background: rgba(0, 0, 0, 0.36);
+      }
+
+      .lead-form.hidden {
+        display: none;
+      }
+
+      .lead-form label {
+        display: grid;
+        gap: 6px;
+        color: rgba(255, 255, 255, 0.84);
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .lead-form input {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 750;
+        outline: none;
+        padding: 0 14px;
+      }
+
+      .lead-form input:focus {
+        border-color: rgba(57, 255, 136, 0.72);
+        box-shadow: 0 0 0 3px rgba(57, 255, 136, 0.12);
+      }
+
+      .lead-form input::placeholder {
+        color: rgba(255, 255, 255, 0.42);
+      }
+
+      .form-note,
+      .form-error,
+      .lead-summary {
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .form-note {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .form-error {
+        display: none;
+        color: #ff9aa5;
+      }
+
+      .form-error.show {
+        display: block;
+      }
+
+      .lead-summary {
+        display: none;
+        padding: 12px 14px;
+        border: 1px solid rgba(57, 255, 136, 0.28);
+        border-radius: 16px;
+        background: rgba(57, 255, 136, 0.09);
+        color: rgba(255, 255, 255, 0.86);
+        text-align: center;
+      }
+
+      .lead-summary.show {
+        display: block;
+      }
+
       button {
         min-height: 60px;
         border: 0;
@@ -648,7 +727,21 @@
               <div class="hub">SPIN</div>
             </div>
             <div class="controls">
-              <button id="spinBtn">Învârte roata</button>
+              <form class="lead-form" id="leadForm">
+                <label>
+                  Numele tău
+                  <input id="nameInput" name="name" autocomplete="name" placeholder="Ex: Maria" required />
+                </label>
+                <label>
+                  Telefon pentru confirmarea premiului
+                  <input id="phoneInput" name="phone" autocomplete="tel" inputmode="tel" placeholder="Ex: 069 123 456" required />
+                </label>
+                <div class="form-error" id="formError">Completează numele și un număr de telefon valid.</div>
+                <button type="submit">Continuă la roată</button>
+                <div class="form-note">Datele sunt folosite doar pentru confirmarea premiului și a comenzii.</div>
+              </form>
+              <div class="lead-summary" id="leadSummary">Datele au fost salvate. Poți învârti roata.</div>
+              <button id="spinBtn" disabled>Învârte roata</button>
               <div class="result" id="result">
                 <span>Premiul tău pentru comandă</span>
                 <strong id="resultTitle">Cutie cadou gratuită</strong>
@@ -675,9 +768,17 @@
       const statusEl = document.getElementById("status");
       const locked = document.getElementById("locked");
       const attemptText = document.getElementById("attemptText");
-      const STORAGE_KEY = "cadouri_personalizate_roata_universala_v2";
+      const leadForm = document.getElementById("leadForm");
+      const nameInput = document.getElementById("nameInput");
+      const phoneInput = document.getElementById("phoneInput");
+      const formError = document.getElementById("formError");
+      const leadSummary = document.getElementById("leadSummary");
+      const STORAGE_KEY = "cadouri_personalizate_roata_universala_v3";
+      const LEAD_STORAGE_KEY = "cadouri_personalizate_roata_lead_v1";
+      const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxru45Oq1F47haN_2s9xvsd0Nui20XMHcKPAJ-_psBCZebB3s6BMSPBLVsuza0xN5Dx/exec";
       const INSTAGRAM_DM = "https://ig.me/m/cadouri_personalizatemd";
       const INSTAGRAM_PROFILE = "https://www.instagram.com/cadouri_personalizatemd/";
+      let leadData = null;
 
       const prizes = [
         { label: "Ai câștigat 10% reducere la comanda ta.", code: "COMANDA10", short: "-10%" },
@@ -697,12 +798,61 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
 
+      function saveLead(data) {
+        leadData = data;
+        localStorage.setItem(LEAD_STORAGE_KEY, JSON.stringify(data));
+      }
+
       function readSavedPrize() {
         try {
           return JSON.parse(localStorage.getItem(STORAGE_KEY));
         } catch {
           return null;
         }
+      }
+
+      function readSavedLead() {
+        try {
+          return JSON.parse(localStorage.getItem(LEAD_STORAGE_KEY));
+        } catch {
+          return null;
+        }
+      }
+
+      function normalizePhone(phone) {
+        return phone.replace(/[^\d+]/g, "");
+      }
+
+      function isValidLead(name, phone) {
+        return name.trim().length >= 2 && normalizePhone(phone).replace(/[^\d]/g, "").length >= 7;
+      }
+
+      function showLeadReady(data) {
+        leadForm.classList.add("hidden");
+        leadSummary.textContent = `${data.name}, datele au fost salvate. Poți învârti roata.`;
+        leadSummary.classList.add("show");
+        spinBtn.disabled = false;
+        statusEl.textContent = "Date salvate";
+      }
+
+      function sendLead(eventType, extra = {}) {
+        if (!SHEET_WEB_APP_URL || !leadData) return;
+        const body = new URLSearchParams({
+          eventType,
+          name: leadData.name,
+          phone: leadData.phone,
+          prize: extra.prize || "",
+          code: extra.code || "",
+          page: window.location.href,
+          createdAt: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+        });
+
+        fetch(SHEET_WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body,
+        }).catch(() => {});
       }
 
       function showPrize(prize, savedRotation, alreadyPlayed = false) {
@@ -738,7 +888,7 @@
       }
 
       function spin() {
-        if (spinning || readSavedPrize()) return;
+        if (spinning || readSavedPrize() || !leadData) return;
         spinning = true;
         result.classList.remove("show");
         igLink.classList.remove("show");
@@ -763,10 +913,12 @@
           const saved = {
             prize,
             rotation,
+            lead: leadData,
             playedAt: new Date().toISOString(),
           };
           savePrize(saved);
           showPrize(prize, rotation);
+          sendLead("wheel_result", { prize: prize.label, code: prize.code });
           celebrate();
           spinBtn.disabled = true;
           spinBtn.textContent = "Încercare folosită";
@@ -778,17 +930,48 @@
       }
 
       function init() {
+        const savedLead = readSavedLead();
+        if (savedLead && savedLead.name && savedLead.phone) {
+          leadData = savedLead;
+          showLeadReady(savedLead);
+        }
+
         const saved = readSavedPrize();
         if (saved && saved.prize) {
+          if (saved.lead) {
+            leadData = saved.lead;
+            showLeadReady(saved.lead);
+          }
           showPrize(saved.prize, saved.rotation, true);
         }
 
         const params = new URLSearchParams(window.location.search);
         if (params.get("reset") === "1") {
           localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(LEAD_STORAGE_KEY);
           window.location.href = window.location.pathname;
         }
       }
+
+      leadForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = nameInput.value.trim();
+        const phone = phoneInput.value.trim();
+        if (!isValidLead(name, phone)) {
+          formError.classList.add("show");
+          return;
+        }
+
+        formError.classList.remove("show");
+        const data = {
+          name,
+          phone: normalizePhone(phone),
+          savedAt: new Date().toISOString(),
+        };
+        saveLead(data);
+        showLeadReady(data);
+        sendLead("lead_submitted");
+      });
 
       spinBtn.addEventListener("click", spin);
       igLink.addEventListener("click", async (event) => {
